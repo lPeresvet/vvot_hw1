@@ -1,4 +1,4 @@
-package internal
+package main
 
 import (
 	"bufio"
@@ -9,6 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"os"
 	"os/exec"
@@ -49,6 +50,13 @@ type APIGatewayResponse struct {
 	IsBase64Encoded   bool                `json:"isBase64Encoded,omitempty"`
 }
 
+type Photo struct {
+	ID       string `json:"file_id"`
+	UniqueID string `json:"file_unique_id"`
+	Width    int    `json:"width"`
+	Height   int    `json:"height"`
+}
+
 type Request struct {
 	UpdateID int64 `json:"update_id"`
 	Message  struct {
@@ -56,12 +64,8 @@ type Request struct {
 		Chat struct {
 			ID int64 `json:"id"`
 		} `json:"chat"`
-		Photo []struct {
-			ID       string `json:"file_id"`
-			UniqueID string `json:"file_unique_id"`
-			Width    int    `json:"width"`
-			Height   int    `json:"height"`
-		} `json:"photo,omitempty"`
+		Text  string  `json:"text"`
+		Photo []Photo `json:"photo,omitempty"`
 	} `json:"message"`
 }
 
@@ -137,9 +141,20 @@ const (
 	catalog                = "b1g163vdicpkeevao9ga"
 	yaGPTURL               = "https://llm.api.cloud.yandex.net/foundationModels/v1/completion"
 	maxMessageLen          = 4096
+
+	defaultAnswer = "Я помогу подготовить ответ на экзаменационный вопрос по дисциплине \"Операционные системы\".\nПришлите мне фотографию с вопросом или наберите его текстом."
+)
+
+var (
+	predefinedAnswers = map[string]string{
+		"/help":  defaultAnswer,
+		"/start": defaultAnswer,
+	}
 )
 
 func Handler(ctx context.Context, event *APIGatewayRequest) (*APIGatewayResponse, error) {
+	log.Print("received message")
+
 	token := os.Getenv("TG_API_KEY")
 	req := &Request{}
 
@@ -148,10 +163,53 @@ func Handler(ctx context.Context, event *APIGatewayRequest) (*APIGatewayResponse
 		return nil, fmt.Errorf("an error has occurred when parsing body: %w", err)
 	}
 
+	if len(req.Message.Photo) > 1 {
+		if err := sendReply(
+			req.Message.Chat.ID,
+			"Я могу обработать только одну фотографию.",
+			req.Message.ID,
+		); err != nil {
+			return nil, fmt.Errorf("failed to send reply: %w", err)
+		}
+
+		log.Printf("photos: %v", req.Message.Photo)
+
+		return &APIGatewayResponse{
+			StatusCode: 200,
+		}, nil
+	}
+
+	if req.Message.Text != "" {
+		if predefined, ok := predefinedAnswers[req.Message.Text]; ok {
+			if err := sendReply(req.Message.Chat.ID, predefined, req.Message.ID); err != nil {
+				return nil, fmt.Errorf("failed to send reply: %w", err)
+			}
+
+			return &APIGatewayResponse{
+				StatusCode: 200,
+			}, nil
+		}
+
+		promptResult, err := doPrompt(req.Message.Text)
+		if err != nil {
+			log.Printf("failed to proceed prompt in YaGPT: %v\n", err)
+
+			promptResult = "Я не смог подготовить ответ на экзаменационный вопрос."
+		}
+
+		if err := sendReply(req.Message.Chat.ID, promptResult, req.Message.ID); err != nil {
+			return nil, fmt.Errorf("failed to send reply: %w", err)
+		}
+
+		return &APIGatewayResponse{
+			StatusCode: 200,
+		}, nil
+	}
+
 	if len(req.Message.Photo) == 0 {
 		if err := sendReply(
 			req.Message.Chat.ID,
-			"Пришлите мне фотографию вашего экзаменационного билета и я его попытаюсь решить его",
+			"Я могу обработать только текстовое сообщение или фотографию.",
 			req.Message.ID,
 		); err != nil {
 			return nil, fmt.Errorf("failed to send reply: %w", err)
@@ -190,11 +248,11 @@ func Handler(ctx context.Context, event *APIGatewayRequest) (*APIGatewayResponse
 		return nil, fmt.Errorf("failed to recognize text: %w", err)
 	}
 
-	fmt.Printf("prompt: %v\n", ocrText)
-
 	promptResult, err := doPrompt(ocrText)
 	if err != nil {
-		return nil, fmt.Errorf("failed to proceed prompt: %w", err)
+		log.Printf("failed to proceed prompt in YaGPT: %v\n", err)
+
+		promptResult = "Я не смог подготовить ответ на экзаменационный вопрос."
 	}
 
 	if err := sendReply(req.Message.Chat.ID, promptResult, req.Message.ID); err != nil {
