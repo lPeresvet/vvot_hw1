@@ -93,7 +93,7 @@ output "func_url" {
 resource "archive_file" "zip" {
   type = "zip"
   output_path = "src.zip"
-  source_dir = "../internal/*"
+  source_dir = "../internal"
 }
 
 resource "null_resource" "curl" {
