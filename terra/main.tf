@@ -15,11 +15,11 @@ provider "yandex" {
 
 
 resource "yandex_storage_bucket" "bucket" {
-  bucket = "sluchaev_vvot_ocr_bot_setup"
+  bucket = "sluchaev-vvot-ocr-bot-setup"
 }
 
 resource "yandex_storage_bucket" "mount_bucket" {
-  bucket = "sluchaev_vvot_ocr_bot_mount"
+  bucket = "sluchaev-vvot-ocr-bot-mount"
 }
 
 resource "yandex_storage_object" "yagpt_setup" {
@@ -39,7 +39,7 @@ resource "yandex_function_iam_binding" "function-iam" {
 
 
 resource "yandex_function" "func" {
-  name        = "func_bot_terraformed"
+  name        = "func-bot-terraformed"
   user_hash   = archive_file.zip.output_sha256
   runtime     = "golang121"
   entrypoint  = "index.handler"
