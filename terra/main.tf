@@ -18,7 +18,7 @@ resource "yandex_storage_bucket" "bucket" {
   bucket = "sluchaev-vvot-ocr-bot-setup"
 }
 
-resource "yandex_storage_bucket" "mount_bucket" {
+resource "yandex_storage_bucket" "mount-bucket" {
   bucket = "sluchaev-vvot-ocr-bot-mount"
 }
 
@@ -55,7 +55,7 @@ resource "yandex_function" "func" {
   mounts {
     name = "images"
     object_storage {
-      bucket = yandex_storage_bucket.mount_bucket.bucket
+      bucket = yandex_storage_bucket.mount-bucket.bucket
     }
   }
 
