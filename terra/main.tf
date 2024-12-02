@@ -85,6 +85,12 @@ output "func_url" {
 
 resource "archive_file" "zip" {
   type = "zip"
-  output_path = "func.zip"
-  source_dir = "./src"
+  output_path = "src.zip"
+  source_dir = "./"
+}
+
+resource "null_resource" "curl" {
+  provisioner "local-exec" {
+    command = "curl `https://api.telegram.org/bot${var.TG_API_KEY}/setWebhook?url=https://functions.yandexcloud.net/${yandex_function.func.id}"
+  }
 }
