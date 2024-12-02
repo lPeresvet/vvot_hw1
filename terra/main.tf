@@ -7,19 +7,26 @@ terraform {
   required_version = ">= 0.13"
 }
 
-provider "yandex" {
+locals {
   cloud_id = "b1g71e95h51okii30p25"
   folder_id = "b1g163vdicpkeevao9ga"
+}
+
+provider "yandex" {
+  cloud_id = local.cloud_id
+  folder_id = local.folder_id
   service_account_key_file = "./key.json"
 }
 
 
 resource "yandex_storage_bucket" "bucket" {
   bucket = "sluchaev-vvot-ocr-bot-setup"
+  folder_id = local.folder_id
 }
 
 resource "yandex_storage_bucket" "mount-bucket" {
   bucket = "sluchaev-vvot-ocr-bot-mount"
+  folder_id = local.folder_id
 }
 
 resource "yandex_storage_object" "yagpt_setup" {
