@@ -60,13 +60,6 @@ resource "yandex_function" "func" {
   }
   service_account_id = "ajeqrhod65lvpvvagmus"
 
-#  mounts {
-#    name = "mnt"
-#    mode = "ro"
-#    object_storage {
-#      bucket = yandex_storage_bucket.mount-bucket.bucket
-#    }
-#  }
   storage_mounts {
     mount_point_name = "images"
     bucket = "sluchaev-vvot-ocr-bot-mount"
@@ -108,3 +101,15 @@ resource "null_resource" "curl" {
     command = "curl --insecure -X POST https://api.telegram.org/bot${var.TG_API_KEY}/setWebhook?url=https://functions.yandexcloud.net/${yandex_function.func.id}"
   }
 }
+
+#resource "yandex_iam_service_account" "sa" {
+#  name        = "<service_account_name>"
+#  description = "<service_account_description>"
+#  folder_id   = "<folder_ID>"
+#}
+
+#resource "yandex_resourcemanager_folder_iam_member" "admin-account-iam" {
+#  folder_id   = "<folder_ID>"
+#  role        = "<role>"
+#  member      = "serviceAccount:<service_account_ID>"
+#}
