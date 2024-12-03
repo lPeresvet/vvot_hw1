@@ -59,9 +59,10 @@ resource "yandex_function" "func" {
     "IMAGES_BUCKET" = yandex_storage_bucket.bucket.bucket
   }
 
-  mounts = {
-    name = "images"
-    object_storage = {
+  mounts {
+    name = "mnt"
+    mode = "ro"
+    object_storage {
       bucket = yandex_storage_bucket.mount-bucket.bucket
     }
   }
