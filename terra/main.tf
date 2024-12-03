@@ -44,6 +44,12 @@ resource "yandex_function_iam_binding" "function-iam" {
   ]
 }
 
+resource "yandex_iam_service_account_iam_binding" "mount-account-iam" {
+  service_account_id = "qwertyuiop1234"
+  role               = "storage.editor"
+  members            = []
+}
+
 
 resource "yandex_function" "func" {
   name        = "func-bot-terraformed"
@@ -58,6 +64,7 @@ resource "yandex_function" "func" {
     "YAGPT_API_KEY" = var.YAGPT_API_KEY,
     "IMAGES_BUCKET" = yandex_storage_bucket.bucket.bucket
   }
+  service_account_id = yandex_iam_service_account_iam_binding.mount-account-iam.service_account_id
 
 #  mounts {
 #    name = "mnt"
