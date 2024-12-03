@@ -45,7 +45,7 @@ resource "yandex_function_iam_binding" "function-iam" {
 }
 
 resource "yandex_iam_service_account_iam_binding" "mount-account-iam" {
-  service_account_id = "qwertyuiop1234"
+  service_account_id = "ajegrtv5lr9uav7rl74c"
   role               = "storage.editor"
   members            = []
 }
