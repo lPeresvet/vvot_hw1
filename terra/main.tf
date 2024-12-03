@@ -59,13 +59,13 @@ resource "yandex_function" "func" {
     "IMAGES_BUCKET" = yandex_storage_bucket.bucket.bucket
   }
 
-  mounts {
-    name = "mnt"
-    mode = "ro"
-    object_storage {
-      bucket = yandex_storage_bucket.mount-bucket.bucket
-    }
-  }
+#  mounts {
+#    name = "mnt"
+#    mode = "ro"
+#    object_storage {
+#      bucket = yandex_storage_bucket.mount-bucket.bucket
+#    }
+#  }
 
   content {
     zip_filename = archive_file.zip.output_path
