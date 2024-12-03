@@ -24,10 +24,10 @@ resource "yandex_storage_bucket" "bucket" {
   folder_id = local.folder_id
 }
 
-resource "yandex_storage_bucket" "mount-bucket" {
-  bucket = "sluchaev-vvot-ocr-bot-mount"
-  folder_id = local.folder_id
-}
+#resource "yandex_storage_bucket" "mount-bucket" {
+#  bucket = "sluchaev-vvot-ocr-bot-mount"
+#  folder_id = local.folder_id
+#}
 
 resource "yandex_storage_object" "yagpt_setup" {
   bucket = yandex_storage_bucket.bucket.id
@@ -68,7 +68,7 @@ resource "yandex_function" "func" {
 #  }
   storage_mounts {
     mount_point_name = "images"
-    bucket = yandex_storage_bucket.mount-bucket.bucket
+    bucket = "sluchaev-vvot-ocr-bot-mount"
     prefix           = ""
   }
 
