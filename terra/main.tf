@@ -66,6 +66,11 @@ resource "yandex_function" "func" {
 #      bucket = yandex_storage_bucket.mount-bucket.bucket
 #    }
 #  }
+  storage_mounts {
+    mount_point_name = "images"
+    bucket = yandex_storage_bucket.mount-bucket.bucket
+    prefix           = ""
+  }
 
   content {
     zip_filename = archive_file.zip.output_path
