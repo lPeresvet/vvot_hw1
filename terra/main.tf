@@ -49,7 +49,7 @@ resource "yandex_function" "func" {
   name        = "func-bot-terraformed"
   user_hash   = archive_file.zip.output_sha256
   runtime     = "golang121"
-  entrypoint  = "index.handler"
+  entrypoint  = "index.Handler"
   memory      = 128
   execution_timeout  = 10
   environment = {
