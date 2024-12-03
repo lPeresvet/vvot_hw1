@@ -47,7 +47,7 @@ resource "yandex_function_iam_binding" "function-iam" {
 
 resource "yandex_function" "func" {
   name        = "func-bot-terraformed"
-  user_hash   = data.archive_file.zip.output_sha256
+  user_hash   = archive_file.zip.output_sha256
   runtime     = "golang121"
   entrypoint  = "index.handler"
   memory      = 128
@@ -67,7 +67,7 @@ resource "yandex_function" "func" {
   }
 
   content {
-    zip_filename = data.archive_file.zip.output_path
+    zip_filename = archive_file.zip.output_path
   }
 }
 
