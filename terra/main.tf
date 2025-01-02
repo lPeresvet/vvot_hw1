@@ -102,11 +102,11 @@ resource "yandex_iam_service_account" "func-bot-account" {
   folder_id   = local.folder_id
 }
 
-resource "yandex_function_iam_binding" "mount-iam" {
-  function_id = yandex_function.func.id
+resource "yandex_iam_service_account_iam_binding" "mount-iam" {
+  service_account_id = yandex_function_iam_binding.function-iam.id
   role               = "storage.admin"
 
   members = [
-    "serviceAccount:${yandex_iam_service_account.func-bot-account.id}",
+    "system:allAuthenticatedUsers",
   ]
 }
