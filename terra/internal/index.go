@@ -385,8 +385,8 @@ func doPrompt(prompt string) (string, error) {
 		ModelUri: "gpt://" + catalog + "/yandexgpt-lite",
 		CompletionOptions: YaGPTRequestOptions{
 			Stream:      false,
-			Temperature: 0.4,
-			MaxTokens:   "1500",
+			Temperature: 0.2,
+			MaxTokens:   "1200",
 		},
 		Messages: []YaGPTRequestMessages{
 			{

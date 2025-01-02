@@ -7,6 +7,10 @@ terraform {
   required_version = ">= 0.13"
 }
 
+locals {
+  home = "/home/www"
+}
+
 resource "yandex_iam_service_account" "func-bot-account" {
   name        = "func-bot-account"
   description = "Аккаунт для функции"
@@ -52,7 +56,7 @@ resource "yandex_resourcemanager_folder_iam_binding" "func-admin-iam" {
 provider "yandex" {
   cloud_id = var.cloud_id
   folder_id = var.folder_id
-  service_account_key_file = "/home/www/.yc-keys/key.json"
+  service_account_key_file = "${local.home}/.yc-keys/key.json"
 }
 
 resource "yandex_storage_bucket" "mount-bucket" {
@@ -128,6 +132,7 @@ resource "null_resource" "curl" {
   provisioner "local-exec" {
     command = "curl --insecure -X POST https://api.telegram.org/bot${var.TG_API_KEY}/setWebhook?url=https://functions.yandexcloud.net/${yandex_function.func.id}"
   }
+
   triggers = {
     on_version_change = var.TG_API_KEY
   }
