@@ -416,6 +416,9 @@ func doPrompt(prompt string) (string, error) {
 
 	defer resp.Body.Close()
 	if resp.StatusCode >= 300 {
+		body, _ := io.ReadAll(resp.Body)
+
+		log.Println(body)
 		return "", errors.New("yagpt request failed with status: " + resp.Status)
 	}
 	body, err := io.ReadAll(resp.Body)
