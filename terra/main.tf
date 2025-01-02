@@ -103,7 +103,7 @@ resource "yandex_iam_service_account" "func-bot-account" {
 }
 
 resource "yandex_iam_service_account_iam_binding" "mount-iam" {
-  service_account_id = yandex_function_iam_binding.function-iam.id
+  service_account_id = yandex_iam_service_account.func-bot-account.id
   role               = "storage.admin"
 
   members = [
