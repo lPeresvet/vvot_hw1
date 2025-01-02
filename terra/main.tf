@@ -97,15 +97,6 @@ resource "yandex_function" "func" {
   content {
     zip_filename = archive_file.zip.output_path
   }
-
-  triggers = {
-    on_version_change = var.TG_API_KEY
-  }
-
-  provisioner "local-exec" {
-    when    = destroy
-    command = "curl --insecure -X POST https://api.telegram.org/bot${self.triggers.on_version_change}/deleteWebhook"
-  }
 }
 
 variable "TG_API_KEY" {
@@ -136,5 +127,13 @@ resource "archive_file" "zip" {
 resource "null_resource" "curl" {
   provisioner "local-exec" {
     command = "curl --insecure -X POST https://api.telegram.org/bot${var.TG_API_KEY}/setWebhook?url=https://functions.yandexcloud.net/${yandex_function.func.id}"
+  }
+  triggers = {
+    on_version_change = var.TG_API_KEY
+  }
+
+  provisioner "local-exec" {
+    when    = destroy
+    command = "curl --insecure -X POST https://api.telegram.org/bot${self.triggers.on_version_change}/deleteWebhook"
   }
 }
