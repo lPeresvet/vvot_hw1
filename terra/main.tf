@@ -7,6 +7,7 @@ terraform {
   required_version = ">= 0.13"
 }
 
+# TODO move locals to input variables
 locals {
   cloud_id = "b1g71e95h51okii30p25"
   folder_id = "b1g163vdicpkeevao9ga"
@@ -17,12 +18,6 @@ provider "yandex" {
   folder_id = local.folder_id
   service_account_key_file = "./key.json"
 }
-
-
-#resource "yandex_storage_bucket" "bucket" {
-#  bucket = "sluchaev-vvot-ocr-bot-setup"
-#  folder_id = local.folder_id
-#}
 
 resource "yandex_storage_bucket" "mount-bucket" {
   bucket = "sluchaev-vvot-ocr-bot-mount"
@@ -43,7 +38,6 @@ resource "yandex_function_iam_binding" "function-iam" {
     "system:allUsers",
   ]
 }
-
 
 resource "yandex_function" "func" {
   name        = "func-bot-terraformed"

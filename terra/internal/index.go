@@ -351,17 +351,33 @@ func sendReply(chatID int64, text string, replyToMsgID int64) error {
 }
 
 func doPrompt(prompt string) (string, error) {
+	f, err := os.Open(path.Join(localPath, "setup.txt"))
+	if err != nil {
+		log.Println("WARNING: setup.txt file was not found")
+
+		return "", err
+	}
+
+	// Прочитайте содержимое файла.
+	reader := bufio.NewReader(f)
+	content, err := io.ReadAll(reader)
+	if err != nil {
+		log.Println("WARNING: setup.txt file is invalid")
+
+		content = []byte("Ты преподаватель по компьютерным наукам. Ответь на следующие билеты на экзамене")
+	}
+
 	request := &YaGPTRequest{
 		ModelUri: "gpt://" + catalog + "/yandexgpt-lite",
 		CompletionOptions: YaGPTRequestOptions{
 			Stream:      false,
-			Temperature: 0.3,
-			MaxTokens:   "2000",
+			Temperature: 0.4,
+			MaxTokens:   "1500",
 		},
 		Messages: []YaGPTRequestMessages{
 			{
 				Role: "system",
-				Text: "Ты преподаватель по компьютерным наукам. Ответь на следующие билеты на экзамене",
+				Text: string(content),
 			},
 			{
 				Role: "user",
