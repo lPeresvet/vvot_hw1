@@ -396,7 +396,8 @@ func doPrompt(prompt string) (string, error) {
 		return "", err
 	}
 
-	apiToken := os.Getenv("YAGPT_API_KEY")
+	apiToken, err := getIAMToken()
+	log.Printf("**** %s, %v", apiToken, err)
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", "Bearer "+apiToken)
 
@@ -421,4 +422,27 @@ func doPrompt(prompt string) (string, error) {
 	}
 
 	return yaGPTResp.Result.Alternatives[0].Message.Text, nil
+}
+
+func getIAMToken() (string, error) {
+	tokenURL := "http://169.254.169.254/computeMetadata/v1/instance/service-accounts/default/token"
+	req, err := http.NewRequest("GET", tokenURL, bytes.NewReader([]byte{}))
+	if err != nil {
+		return "", err
+	}
+
+	req.Header.Set("Metadata-Flavor", "Google")
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return "", err
+	}
+
+	defer resp.Body.Close()
+	if resp.StatusCode >= 300 {
+		return "", errors.New("token request failed with status: " + resp.Status)
+	}
+	body, err := io.ReadAll(resp.Body)
+
+	return string(body), nil
 }
