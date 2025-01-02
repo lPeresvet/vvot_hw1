@@ -62,7 +62,7 @@ resource "yandex_function" "func" {
 
   storage_mounts {
     mount_point_name = "images"
-    bucket = "sluchaev-vvot-ocr-bot-mount"
+    bucket = yandex_storage_bucket.mount-bucket.bucket
     prefix           = ""
   }
 
