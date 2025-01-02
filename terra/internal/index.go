@@ -295,7 +295,13 @@ func proceedOCR(path string) (string, error) {
 		return "", err
 	}
 
+	apiToken, err := getIAMToken()
+	if err != nil {
+		return "", fmt.Errorf("failed to proceed token: %s", err)
+	}
+
 	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+apiToken)
 	req.Header.Set("x-data-logging-enabled", "true")
 
 	resp, err := http.DefaultClient.Do(req)
