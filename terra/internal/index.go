@@ -132,6 +132,12 @@ type YaGPTResponse struct {
 	} `json:"result"`
 }
 
+type TokenResponse struct {
+	AccessToken string `json:"access_token"`
+	ExpiresIn   int    `json:"expires_in"`
+	TokenType   string `json:"token_type"`
+}
+
 const (
 	getFilePathURLPattern  = "https://api.telegram.org/bot%s/getFile?file_id=%s"
 	sendMsgURLPattern      = "https://api.telegram.org/bot%s/sendMessage"
@@ -162,6 +168,8 @@ func Handler(ctx context.Context, event *APIGatewayRequest) (*APIGatewayResponse
 	if err := json.Unmarshal([]byte(event.Body), &req); err != nil {
 		return nil, fmt.Errorf("an error has occurred when parsing body: %w", err)
 	}
+
+	//log.Println(event)
 
 	if req.Message.Text != "" {
 		if predefined, ok := predefinedAnswers[req.Message.Text]; ok {
@@ -255,20 +263,17 @@ func downloadFile(filepath string, url string) (err error) {
 }
 
 func proceedOCR(path string) (string, error) {
-	apiToken := os.Getenv("OCR_API_KEY")
 	f, err := os.Open(path)
 	if err != nil {
 		return "", err
 	}
 
-	// Прочитайте содержимое файла.
 	reader := bufio.NewReader(f)
 	content, err := io.ReadAll(reader)
 	if err != nil {
 		return "", err
 	}
 
-	// Получите содержимое файла в формате Base64.
 	base64Img := base64.StdEncoding.EncodeToString(content)
 
 	ocrBody := OCRRequest{
@@ -288,8 +293,13 @@ func proceedOCR(path string) (string, error) {
 		return "", err
 	}
 
+	apiToken, err := getIAMToken()
+	if err != nil {
+		return "", fmt.Errorf("failed to proceed token: %s", err)
+	}
+
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", "Api-Key "+apiToken)
+	req.Header.Set("Authorization", "Bearer "+apiToken)
 	req.Header.Set("x-data-logging-enabled", "true")
 
 	resp, err := http.DefaultClient.Do(req)
@@ -303,6 +313,10 @@ func proceedOCR(path string) (string, error) {
 
 	if err := json.Unmarshal(body, ocrResp); err != nil {
 		return "", err
+	}
+
+	if err := os.Remove(path); err != nil {
+		log.Println("failed to remove image")
 	}
 
 	return ocrResp.Result.TextAnnotation.FullText, nil
@@ -371,8 +385,8 @@ func doPrompt(prompt string) (string, error) {
 		ModelUri: "gpt://" + catalog + "/yandexgpt-lite",
 		CompletionOptions: YaGPTRequestOptions{
 			Stream:      false,
-			Temperature: 0.4,
-			MaxTokens:   "1500",
+			Temperature: 0.2,
+			MaxTokens:   "1200",
 		},
 		Messages: []YaGPTRequestMessages{
 			{
@@ -396,9 +410,12 @@ func doPrompt(prompt string) (string, error) {
 		return "", err
 	}
 
-	apiToken := os.Getenv("YAGPT_API_KEY")
+	apiToken, err := getIAMToken()
+	if err != nil {
+		return "", fmt.Errorf("failed to proceed token: %s", err)
+	}
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", "Api-Key "+apiToken)
+	req.Header.Set("Authorization", "Bearer "+apiToken)
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
@@ -407,6 +424,9 @@ func doPrompt(prompt string) (string, error) {
 
 	defer resp.Body.Close()
 	if resp.StatusCode >= 300 {
+		body, _ := io.ReadAll(resp.Body)
+
+		log.Println(string(body))
 		return "", errors.New("yagpt request failed with status: " + resp.Status)
 	}
 	body, err := io.ReadAll(resp.Body)
@@ -421,4 +441,33 @@ func doPrompt(prompt string) (string, error) {
 	}
 
 	return yaGPTResp.Result.Alternatives[0].Message.Text, nil
+}
+
+func getIAMToken() (string, error) {
+	tokenURL := "http://169.254.169.254/computeMetadata/v1/instance/service-accounts/default/token"
+	req, err := http.NewRequest("GET", tokenURL, bytes.NewReader([]byte{}))
+	if err != nil {
+		return "", err
+	}
+
+	req.Header.Set("Metadata-Flavor", "Google")
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return "", err
+	}
+
+	defer resp.Body.Close()
+	if resp.StatusCode >= 300 {
+		return "", errors.New("token request failed with status: " + resp.Status)
+	}
+	body, err := io.ReadAll(resp.Body)
+
+	token := &TokenResponse{}
+
+	if err := json.Unmarshal(body, token); err != nil {
+		return "", fmt.Errorf("failed to unmarshal token resp: %v", err)
+	}
+
+	return token.AccessToken, nil
 }
