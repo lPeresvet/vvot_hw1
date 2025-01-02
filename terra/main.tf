@@ -7,21 +7,48 @@ terraform {
   required_version = ">= 0.13"
 }
 
-# TODO move locals to input variables
-locals {
-  cloud_id = "b1g71e95h51okii30p25"
-  folder_id = "b1g163vdicpkeevao9ga"
+resource "yandex_iam_service_account" "func-bot-account" {
+  name        = "func-bot-account"
+  description = "Аккаунт для функции"
+  folder_id   = var.folder_id
+}
+
+resource "yandex_resourcemanager_folder_iam_binding" "mount-iam" {
+  folder_id = var.folder_id
+  role               = "storage.admin"
+
+  members = [
+    "serviceAccount:${yandex_iam_service_account.func-bot-account.id}",
+  ]
+}
+
+resource "yandex_resourcemanager_folder_iam_binding" "ocr-iam" {
+  folder_id = var.folder_id
+  role               = "ai.vision.user"
+
+  members = [
+    "serviceAccount:${yandex_iam_service_account.func-bot-account.id}",
+  ]
+}
+
+resource "yandex_resourcemanager_folder_iam_binding" "yagpt-iam" {
+  folder_id = var.folder_id
+  role               = "ai.languageModels.user"
+
+  members = [
+    "serviceAccount:${yandex_iam_service_account.func-bot-account.id}",
+  ]
 }
 
 provider "yandex" {
-  cloud_id = local.cloud_id
-  folder_id = local.folder_id
+  cloud_id = var.cloud_id
+  folder_id = var.folder_id
   service_account_key_file = "/home/www/.yc-keys/key.json"
 }
 
 resource "yandex_storage_bucket" "mount-bucket" {
   bucket = "sluchaev-vvot-ocr-bot-mount"
-  folder_id = local.folder_id
+  folder_id = var.folder_id
 }
 
 resource "yandex_storage_object" "yagpt_setup" {
@@ -48,8 +75,6 @@ resource "yandex_function" "func" {
   execution_timeout  = 10
   environment = {
     "TG_API_KEY" = var.TG_API_KEY,
-    "OCR_API_KEY" = var.OCR_API_KEY,
-    "YAGPT_API_KEY" = var.YAGPT_API_KEY,
     "IMAGES_BUCKET" = yandex_storage_bucket.mount-bucket.bucket
   }
   service_account_id = yandex_iam_service_account.func-bot-account.id
@@ -70,14 +95,14 @@ variable "TG_API_KEY" {
   description = "Ключ для тг бота"
 }
 
-variable "OCR_API_KEY" {
+variable "cloud_id" {
   type = string
-  description = "Ключ для сервиса OCR"
+  description = "Идентификатор облака"
 }
 
-variable "YAGPT_API_KEY" {
+variable "folder_id" {
   type = string
-  description = "Ключ для сервиса YAGPT"
+  description = "Идентификатор каталога"
 }
 
 output "func_url" {
@@ -94,37 +119,4 @@ resource "null_resource" "curl" {
   provisioner "local-exec" {
     command = "curl --insecure -X POST https://api.telegram.org/bot${var.TG_API_KEY}/setWebhook?url=https://functions.yandexcloud.net/${yandex_function.func.id}"
   }
-}
-
-resource "yandex_iam_service_account" "func-bot-account" {
-  name        = "func-bot-account"
-  description = "Аккаунт для функции"
-  folder_id   = local.folder_id
-}
-
-resource "yandex_resourcemanager_folder_iam_binding" "mount-iam" {
-  folder_id = local.folder_id
-  role               = "storage.admin"
-
-  members = [
-    "serviceAccount:${yandex_iam_service_account.func-bot-account.id}",
-  ]
-}
-
-resource "yandex_resourcemanager_folder_iam_binding" "ocr-iam" {
-  folder_id = local.folder_id
-  role               = "ai.vision.user"
-
-  members = [
-    "serviceAccount:${yandex_iam_service_account.func-bot-account.id}",
-  ]
-}
-
-resource "yandex_resourcemanager_folder_iam_binding" "yagpt-iam" {
-  folder_id = local.folder_id
-  role               = "ai.languageModels.user"
-
-  members = [
-    "serviceAccount:${yandex_iam_service_account.func-bot-account.id}",
-  ]
 }
