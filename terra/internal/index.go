@@ -255,7 +255,6 @@ func downloadFile(filepath string, url string) (err error) {
 }
 
 func proceedOCR(path string) (string, error) {
-	apiToken := os.Getenv("OCR_API_KEY")
 	f, err := os.Open(path)
 	if err != nil {
 		return "", err
@@ -289,7 +288,6 @@ func proceedOCR(path string) (string, error) {
 	}
 
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", "Api-Key "+apiToken)
 	req.Header.Set("x-data-logging-enabled", "true")
 
 	resp, err := http.DefaultClient.Do(req)
@@ -396,9 +394,7 @@ func doPrompt(prompt string) (string, error) {
 		return "", err
 	}
 
-	apiToken := os.Getenv("YAGPT_API_KEY")
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", "Api-Key "+apiToken)
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {

@@ -119,3 +119,12 @@ resource "yandex_resourcemanager_folder_iam_binding" "ocr-iam" {
     "serviceAccount:${yandex_iam_service_account.func-bot-account.id}",
   ]
 }
+
+resource "yandex_resourcemanager_folder_iam_binding" "yagpt-iam" {
+  folder_id = local.folder_id
+  role               = "ai.languageModels.user"
+
+  members = [
+    "serviceAccount:${yandex_iam_service_account.func-bot-account.id}",
+  ]
+}
