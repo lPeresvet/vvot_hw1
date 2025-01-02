@@ -315,6 +315,10 @@ func proceedOCR(path string) (string, error) {
 		return "", err
 	}
 
+	if err := os.Remove(path); err != nil {
+		log.Println("failed to remove image")
+	}
+
 	return ocrResp.Result.TextAnnotation.FullText, nil
 }
 

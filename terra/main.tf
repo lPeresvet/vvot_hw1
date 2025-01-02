@@ -40,6 +40,15 @@ resource "yandex_resourcemanager_folder_iam_binding" "yagpt-iam" {
   ]
 }
 
+resource "yandex_resourcemanager_folder_iam_binding" "func-admin-iam" {
+  folder_id = var.folder_id
+  role               = "serverless.functions.admin"
+
+  members = [
+    "serviceAccount:${yandex_iam_service_account.func-bot-account.id}",
+  ]
+}
+
 provider "yandex" {
   cloud_id = var.cloud_id
   folder_id = var.folder_id
@@ -119,6 +128,9 @@ resource "null_resource" "curl" {
   provisioner "local-exec" {
     command = "curl --insecure -X POST https://api.telegram.org/bot${var.TG_API_KEY}/setWebhook?url=https://functions.yandexcloud.net/${yandex_function.func.id}"
   }
+}
+
+resource "null_resource" "curl-remove" {
   provisioner "local-exec" {
     when    = destroy
     command = "curl --insecure -X POST https://api.telegram.org/bot${var.TG_API_KEY}/deleteWebhook"
