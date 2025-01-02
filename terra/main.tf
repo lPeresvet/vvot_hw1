@@ -19,18 +19,18 @@ provider "yandex" {
 }
 
 
-resource "yandex_storage_bucket" "bucket" {
-  bucket = "sluchaev-vvot-ocr-bot-setup"
-  folder_id = local.folder_id
-}
-
-#resource "yandex_storage_bucket" "mount-bucket" {
-#  bucket = "sluchaev-vvot-ocr-bot-mount"
+#resource "yandex_storage_bucket" "bucket" {
+#  bucket = "sluchaev-vvot-ocr-bot-setup"
 #  folder_id = local.folder_id
 #}
 
+resource "yandex_storage_bucket" "mount-bucket" {
+  bucket = "sluchaev-vvot-ocr-bot-mount"
+  folder_id = local.folder_id
+}
+
 resource "yandex_storage_object" "yagpt_setup" {
-  bucket = yandex_storage_bucket.bucket.id
+  bucket = yandex_storage_bucket.mount-bucket.id
   key    = "setup.txt"
   source = "./setup.txt"
 }
@@ -56,7 +56,7 @@ resource "yandex_function" "func" {
     "TG_API_KEY" = var.TG_API_KEY,
     "OCR_API_KEY" = var.OCR_API_KEY,
     "YAGPT_API_KEY" = var.YAGPT_API_KEY,
-    "IMAGES_BUCKET" = yandex_storage_bucket.bucket.bucket
+    "IMAGES_BUCKET" = yandex_storage_bucket.mount-bucket.bucket
   }
   service_account_id = "ajeqrhod65lvpvvagmus"
 
