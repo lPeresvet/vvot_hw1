@@ -16,7 +16,7 @@ locals {
 provider "yandex" {
   cloud_id = local.cloud_id
   folder_id = local.folder_id
-  service_account_key_file = "${file("./temlates/home_dir.tpl")}/.yc-keys/key.json"
+  service_account_key_file = "/home/www/.yc-keys/key.json"
 }
 
 resource "yandex_storage_bucket" "mount-bucket" {
