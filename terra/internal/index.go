@@ -163,6 +163,8 @@ func Handler(ctx context.Context, event *APIGatewayRequest) (*APIGatewayResponse
 		return nil, fmt.Errorf("an error has occurred when parsing body: %w", err)
 	}
 
+	log.Println(event.RequestContext)
+
 	if req.Message.Text != "" {
 		if predefined, ok := predefinedAnswers[req.Message.Text]; ok {
 			if err := sendReply(req.Message.Chat.ID, predefined, req.Message.ID); err != nil {
@@ -394,7 +396,9 @@ func doPrompt(prompt string) (string, error) {
 		return "", err
 	}
 
+	apiToken := os.Getenv("YAGPT_API_KEY")
 	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+apiToken)
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
