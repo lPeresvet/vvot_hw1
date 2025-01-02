@@ -132,6 +132,12 @@ type YaGPTResponse struct {
 	} `json:"result"`
 }
 
+type TokenResponse struct {
+	AccessToken string `json:"access_token"`
+	ExpiresIn   int    `json:"expires_in"`
+	TokenType   string `json:"token_type"`
+}
+
 const (
 	getFilePathURLPattern  = "https://api.telegram.org/bot%s/getFile?file_id=%s"
 	sendMsgURLPattern      = "https://api.telegram.org/bot%s/sendMessage"
@@ -397,7 +403,9 @@ func doPrompt(prompt string) (string, error) {
 	}
 
 	apiToken, err := getIAMToken()
-	log.Printf("**** %s, %v \n", apiToken, err)
+	if err != nil {
+		return "", fmt.Errorf("failed to proceed token: %s", err)
+	}
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", "Bearer "+apiToken)
 
@@ -444,5 +452,11 @@ func getIAMToken() (string, error) {
 	}
 	body, err := io.ReadAll(resp.Body)
 
-	return string(body), nil
+	token := &TokenResponse{}
+
+	if err := json.Unmarshal(body, token); err != nil {
+		return "", fmt.Errorf("failed to unmarshal token resp: %v", err)
+	}
+
+	return token.AccessToken, nil
 }
