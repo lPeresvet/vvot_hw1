@@ -52,7 +52,7 @@ resource "yandex_function" "func" {
     "YAGPT_API_KEY" = var.YAGPT_API_KEY,
     "IMAGES_BUCKET" = yandex_storage_bucket.mount-bucket.bucket
   }
-  service_account_id = "ajeqrhod65lvpvvagmus"
+  service_account_id = yandex_iam_service_account.func-bot-account.id
 
   storage_mounts {
     mount_point_name = "images"
