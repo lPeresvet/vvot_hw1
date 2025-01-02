@@ -98,9 +98,13 @@ resource "yandex_function" "func" {
     zip_filename = archive_file.zip.output_path
   }
 
+  triggers = {
+    on_version_change = var.TG_API_KEY
+  }
+
   provisioner "local-exec" {
     when    = destroy
-    command = "curl --insecure -X POST https://api.telegram.org/bot/deleteWebhook"
+    command = "curl --insecure -X POST https://api.telegram.org/bot${self.triggers.on_version_change}/deleteWebhook"
   }
 }
 
