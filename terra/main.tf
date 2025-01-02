@@ -100,7 +100,7 @@ resource "yandex_function" "func" {
 
   provisioner "local-exec" {
     when    = destroy
-    command = "curl --insecure -X POST https://api.telegram.org/bot${var.TG_API_KEY}/deleteWebhook"
+    command = "curl --insecure -X POST https://api.telegram.org/bot/deleteWebhook"
   }
 }
 
