@@ -119,4 +119,8 @@ resource "null_resource" "curl" {
   provisioner "local-exec" {
     command = "curl --insecure -X POST https://api.telegram.org/bot${var.TG_API_KEY}/setWebhook?url=https://functions.yandexcloud.net/${yandex_function.func.id}"
   }
+  provisioner "local-exec" {
+    when    = destroy
+    command = "curl --insecure -X POST https://api.telegram.org/bot${var.TG_API_KEY}/deleteWebhook"
+  }
 }
