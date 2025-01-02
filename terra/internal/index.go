@@ -268,14 +268,12 @@ func proceedOCR(path string) (string, error) {
 		return "", err
 	}
 
-	// Прочитайте содержимое файла.
 	reader := bufio.NewReader(f)
 	content, err := io.ReadAll(reader)
 	if err != nil {
 		return "", err
 	}
 
-	// Получите содержимое файла в формате Base64.
 	base64Img := base64.StdEncoding.EncodeToString(content)
 
 	ocrBody := OCRRequest{
