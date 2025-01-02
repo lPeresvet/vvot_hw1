@@ -163,7 +163,7 @@ func Handler(ctx context.Context, event *APIGatewayRequest) (*APIGatewayResponse
 		return nil, fmt.Errorf("an error has occurred when parsing body: %w", err)
 	}
 
-	log.Println(event.RequestContext)
+	log.Println(event)
 
 	if req.Message.Text != "" {
 		if predefined, ok := predefinedAnswers[req.Message.Text]; ok {
