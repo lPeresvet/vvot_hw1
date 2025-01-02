@@ -96,14 +96,17 @@ resource "null_resource" "curl" {
   }
 }
 
-#resource "yandex_iam_service_account" "sa" {
-#  name        = "<service_account_name>"
-#  description = "<service_account_description>"
-#  folder_id   = "<folder_ID>"
-#}
+resource "yandex_iam_service_account" "func-bot-account" {
+  name        = "func-bot-account"
+  description = "Аккаунт для функции"
+  folder_id   = local.folder_id
+}
 
-#resource "yandex_resourcemanager_folder_iam_member" "admin-account-iam" {
-#  folder_id   = "<folder_ID>"
-#  role        = "<role>"
-#  member      = "serviceAccount:<service_account_ID>"
-#}
+resource "yandex_function_iam_binding" "mount-iam" {
+  function_id = yandex_function.func.id
+  role               = "storage.admin"
+
+  members = [
+    "serviceAccount:${yandex_iam_service_account.func-bot-account.id}",
+  ]
+}
