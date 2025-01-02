@@ -111,7 +111,7 @@ resource "yandex_resourcemanager_folder_iam_binding" "mount-iam" {
   ]
 }
 
-resource "yandex_resourcemanager_folder_iam_binding" "mount-iam" {
+resource "yandex_resourcemanager_folder_iam_binding" "ocr-iam" {
   folder_id = local.folder_id
   role               = "ai.vision.user"
 
