@@ -8,7 +8,7 @@ terraform {
 }
 
 locals {
-  home = "/home/www"
+  home = "/Users/kirill"
 }
 
 resource "yandex_iam_service_account" "func-bot-account" {
@@ -89,6 +89,7 @@ resource "yandex_function" "func" {
   environment = {
     "TG_API_KEY" = var.TG_API_KEY,
     "IMAGES_BUCKET" = yandex_storage_bucket.mount-bucket.bucket
+    "FOLDER_ID" = var.folder_id
   }
   service_account_id = yandex_iam_service_account.func-bot-account.id
 

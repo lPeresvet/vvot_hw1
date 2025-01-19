@@ -144,7 +144,6 @@ const (
 	downloadFileURLPattern = "https://api.telegram.org/file/bot%s"
 	localPath              = "/function/storage/images"
 	ocrURL                 = "https://ocr.api.cloud.yandex.net/ocr/v1/recognizeText"
-	catalog                = "b1g163vdicpkeevao9ga"
 	yaGPTURL               = "https://llm.api.cloud.yandex.net/foundationModels/v1/completion"
 	maxMessageLen          = 4096
 
@@ -380,6 +379,8 @@ func doPrompt(prompt string) (string, error) {
 
 		content = []byte("Ты преподаватель по компьютерным наукам. Ответь на следующие билеты на экзамене")
 	}
+
+	catalog := os.Getenv("FOLDER_ID")
 
 	request := &YaGPTRequest{
 		ModelUri: "gpt://" + catalog + "/yandexgpt-lite",
